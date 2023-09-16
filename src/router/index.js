@@ -18,6 +18,13 @@ const routes = [
     }
   },
   {
+    path: '/image_detail',
+    name: 'imageDetail',
+    component: function () {
+      return import(/* webpackChunkName: "about" */ '../views/Images/ImageDetail.vue')
+    }
+  },
+  {
     path: '/containers',
     name: 'containers',
     component: function () {

@@ -27,64 +27,37 @@
           v-bind="attrs"
           v-on="on"
           dark
-          style="margin-left:100px"
+          style="margin-left:120px;margin-right:30px"
         >
-          创建镜像
+          创建新镜像
+        </v-btn>
+        <v-btn
+          color="primary"
+          dark
+        >
+          删除镜像
         </v-btn>
       </template>
       <v-card>
         <v-card-title>
-          <span class="text-h5">User Profile</span>
+          <span class="text-h5">创建新镜像</span>
         </v-card-title>
         <v-card-text>
           <v-container>
             <v-row>
-              <v-col
-                cols="12"
-                sm="6"
-                md="4"
-              >
+              <v-col cols="12">
                 <v-text-field
-                  label="Legal first name*"
-                  required
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="6"
-                md="4"
-              >
-                <v-text-field
-                  label="Legal middle name"
-                  hint="example of helper text only on focus"
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="6"
-                md="4"
-              >
-                <v-text-field
-                  label="Legal last name*"
-                  hint="example of persistent helper text"
-                  persistent-hint
+                  label="镜像名称"
                   required
                 ></v-text-field>
               </v-col>
               <v-col cols="12">
                 <v-text-field
-                  label="Email*"
+                  label="镜像版本"
                   required
                 ></v-text-field>
               </v-col>
-              <v-col cols="12">
-                <v-text-field
-                  label="Password*"
-                  type="password"
-                  required
-                ></v-text-field>
-              </v-col>
-              <v-col
+              <!-- <v-col
                 cols="12"
                 sm="6"
               >
@@ -103,7 +76,7 @@
                   label="Interests"
                   multiple
                 ></v-autocomplete>
-              </v-col>
+              </v-col> -->
             </v-row>
           </v-container>
           <small>*indicates required field</small>
@@ -111,18 +84,20 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            color="blue darken-1"
-            text
+            color="primary"
+            dark
             @click="dialog = false"
+            style="margin:10px"
           >
-            Close
+            取消
           </v-btn>
           <v-btn
             color="blue darken-1"
-            text
+            dark
             @click="dialog = false"
+            style="margin:10px"
           >
-            Save
+            确定
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -130,10 +105,39 @@
   </v-row>
     </v-card-title>
     <v-data-table
+      v-model="selected"
+      item-key="name"
       :headers="headers"
       :items="desserts"
       :search="search"
-    ></v-data-table>
+      show-select
+    >
+    <!-- <template v-slot:top>
+      <v-toolbar
+        flat
+      >
+      <v-dialog v-model="dialogDelete" max-width="500px">
+          <v-card>
+            <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="closeDelete">Cancel</v-btn>
+              <v-btn color="blue darken-1" text @click="deleteItemConfirm">OK</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-toolbar>
+    </template> -->
+    <template v-slot:item.actions="{ item }">
+      <v-icon
+        small
+        @click="detailItem(item)"
+      >
+        mdi-pencil
+      </v-icon>
+    </template>
+    </v-data-table>
   </v-card>
     </div>
     </div>
@@ -147,6 +151,7 @@
         search: '',
         name:'images',
         dialog:false,
+        selected:[],
         headers: [
           {
             text: 'id',
@@ -157,6 +162,7 @@
           { text: '标签', value: 'label' },
           { text: '大小', value: 'size' },
           { text: '创建时间', value: 'create-time' },
+          { text: '管理', value: 'actions', sortable: false },
         ],
         desserts: [
           {
@@ -165,7 +171,7 @@
             size:127.07
           },
           {
-            name: '001',
+            name: '002',
             label: "nginx",
             size:23
           },
@@ -180,6 +186,10 @@
     methods: {
       addImage(){
         this.show=true;
+      },
+      detailItem(el){
+        console.log('id',el);
+        this.$router.push({path:'/image_detail',query:{id:el.name}});
       },
       cancer(){
         this.show=false;
