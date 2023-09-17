@@ -231,6 +231,11 @@ import axios from 'axios'
         })
       .then(function(res){
         console.log('拉去镜像',res.data);
+        if(res.data.errno==1000){
+          window.alert('拉取成功');
+          }
+        else
+          window.alert('操作失败');
 
       })
       .catch(function(err){

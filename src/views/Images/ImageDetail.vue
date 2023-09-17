@@ -92,18 +92,21 @@
               <v-col cols="12">
                 <v-text-field
                   label="镜像名称"
+                  v-model="docker_name"
                   required
                 ></v-text-field>
               </v-col>
               <v-col cols="12">
                 <v-text-field
                   label="标签"
+                  v-model="docker_tag"
                   required
                 ></v-text-field>
               </v-col>
               <v-col cols="12">
                 <v-text-field
                   label="docker"
+                  v-model="docker_docker"
                   required
                 ></v-text-field>
               </v-col>
@@ -277,6 +280,9 @@ export default {
             newId:'',
             newName:'',
             newVersion:'',
+            docker_tag:'',
+            docker_name:'',
+            docker_docker:'',
             dialog:false,
             dialog1:false,
             image:{
@@ -336,7 +342,6 @@ export default {
              console.log('删除tag',res.data);
              if(res.data.errno==1000){
                that.image.tags = that.image.tags.filter(item => item !== el);
-               window.alert('删除成功！');
              }
             else
               window.alert('删除失败！');
@@ -350,6 +355,29 @@ export default {
         editDockerfile(){
           this.dialog1=false;
           console.log('编辑dockerfile');
+          // /paas/modify_image
+          const formData=new FormData();
+          formData.append('name',this.docker_name);
+          formData.append('tag',this.docker_tag);
+          formData.append('docker',this.docker_docker);
+          this.$axios({
+                url: '/paas/modify_image',
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'multipart/form-data'
+                },
+                data: formData
+             })
+           .then(function(res){
+             console.log('docker',res.data);
+             if(res.data.errno==1000)
+             window.alert('修改成功');
+            else
+            window.alert('修改失败');
+           })
+           .catch(function(err){
+            console.log(err);
+           });
         },
         delImage(){
             // 删除镜像
@@ -398,7 +426,7 @@ export default {
         })
         .then(function(res){
           console.log('添加标签',res);
-          window.alert('添加成功');
+          // window.alert('添加成功');
            that.image.tags.push(tag);
           that.newName='';
             that.newVersion='';
