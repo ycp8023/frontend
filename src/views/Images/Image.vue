@@ -101,12 +101,10 @@
   </v-row>
     </v-card-title>
     <v-data-table
-      v-model="selected"
       item-key="name"
       :headers="headers"
       :items="desserts"
       :search="search"
-      show-select
     >
     <template v-slot:top>
       <v-toolbar
@@ -155,14 +153,14 @@ import axios from 'axios'
         name:'images',
         dialog:false,
         dialogDelete: false,
-        selected:[],
+        // selected:[],
         image_name:'',
         image_version:'',
         headers: [
           {
             text: 'id',
             align: 'start',
-            filterable: false,
+            // filterable: false,
             value: 'short_id',
           },
           { text: '标签', value: 'tags' },
@@ -232,7 +230,7 @@ import axios from 'axios'
           data: formData
         })
       .then(function(res){
-       console.log('拉去镜像',res.data);
+        console.log('拉去镜像',res.data);
 
       })
       .catch(function(err){
@@ -249,7 +247,7 @@ import axios from 'axios'
         //删除镜像
         console.log('del_item',this.desserts[this.editedIndex].short_id);
           const formData=new FormData();
-            formData.append('id',this.$route.query.id);
+            formData.append('id',this.desserts[this.editedIndex].short_id);
             // /paas/delete_image
             this.$axios({
                 url: '/paas/delete_image',
@@ -259,8 +257,13 @@ import axios from 'axios'
                 },
                 data: formData
              })
-           .then(function(res){
+            .then(function(res){
              console.log('删除镜像',res.data);
+             if(res.data.msg=="success")
+              window.alert('删除成功！');
+            else
+              window.alert('删除失败！');
+
            })
            .catch(function(err){
             console.log(err);
@@ -316,7 +319,7 @@ import axios from 'axios'
 </script>
 <style>
 .table-wrapper{
-    /* width: 1100px; */
+    /* width: 1200px; */
     display: flex;
     padding-top:30px;
     margin: auto;
@@ -325,11 +328,13 @@ import axios from 'axios'
 .card-style{
     margin:20px;
     color:#263238;
+    width:1200px;
   font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     font-weight: 700;
 }
 .title{
   float: left;
   color:#263238;
+  /* font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
 }
 </style>

@@ -63,6 +63,73 @@
   </v-container>
     </v-card-text>
     <v-card-actions>
+      <!-- dockerfile弹窗 -->
+       <v-row justify="center">
+    <v-dialog
+      v-model="dialog1"
+      persistent
+      max-width="600px"
+    >
+      <template v-slot:activator="{ on, attrs }">
+          <v-btn 
+        style="margin:20px;color:white" 
+        dark
+        color="primary"
+          v-bind="attrs"
+          v-on="on"
+      >
+        通过dockerfile修改镜像
+      <v-icon color="primary">mdi-file-edit-outline</v-icon>
+        </v-btn>
+      </template>
+      <v-card>
+        <v-card-title>
+          <span class="text-h5">通过dockerfile修改镜像</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <v-text-field
+                  label="镜像名称"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field
+                  label="标签"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field
+                  label="docker"
+                  required
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            text
+            @click="dialog1 = false"
+          >
+            取消
+          </v-btn>
+          <v-btn
+            color="primary"
+            text
+            @click="editDockerfile()"
+          >
+            确定
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-row>
         <!-- 删除弹窗 -->
         <v-row justify="center">
     <v-dialog
@@ -71,13 +138,20 @@
       max-width="290"
     >
       <template v-slot:activator="{ on, attrs }">
-        <v-btn 
+        <v-row>
+          <v-col cols="12" sm="6">
+          </v-col>
+          <v-col cols="12" sm="6">
+       
+         <v-btn 
         style="margin:20px;background-color:#D84315;color:white" 
         v-bind="attrs"
         v-on="on">
         删除镜像
       <v-icon color="primary">mdi-trash-can-outline</v-icon>
         </v-btn>
+          </v-col>
+        </v-row>
    
       </template>
       <v-card>
@@ -122,7 +196,6 @@
      <v-chip
       style="margin:20px;background-color:"
       v-for="(item,key) in image.tags"
-      v-if="image.tags.includes(item)"
       :key="key"
       class="ma-2"
       close
@@ -147,25 +220,47 @@
         <v-form style="margin-top:20px">
     <v-container>
       <v-row>
-        <v-col
+        <!-- <v-col
           cols="12"
-          sm="10"
+          sm="4"
         >
           <v-text-field
-            v-model="newlabel"
-            label="新标签"
+            v-model="newId"
+            label="ID"
+            outlined
+            shaped
+          ></v-text-field>
+        </v-col> -->
+         <v-col
+          cols="12"
+          sm="5"
+        >
+          <v-text-field
+            v-model="newName"
+            label="名称"
             outlined
             shaped
           ></v-text-field>
         </v-col>
-
+         <v-col
+          cols="12"
+          sm="5"
+        >
+          <v-text-field
+            v-model="newVersion"
+            label="版本"
+            outlined
+            shaped
+          ></v-text-field>
+        </v-col>
         <v-col
           cols="12"
           sm="2"
         >
-          <v-btn style="margin:auto; " color="primary" dark @click="addTag()">添加</v-btn>
+          <v-btn style="margin:auto;" color="primary" dark @click="addTag()">添加标签</v-btn>
         </v-col>
       </v-row>
+    
     </v-container>
   </v-form>
     </v-card-text>
@@ -179,8 +274,11 @@ export default {
     name:'imageDetail',
     data() {
         return {
-            newlabel:'',
+            newId:'',
+            newName:'',
+            newVersion:'',
             dialog:false,
+            dialog1:false,
             image:{
                 // Created_time:'2022-03-04',
                 // Architecture:'土豆哈哈哈',
@@ -192,6 +290,9 @@ export default {
         
         }
     },
+    watch:{
+
+       },
     mounted() {
       let that=this;//将vue对象的引用保存在that中
        const formData = new FormData();
@@ -218,7 +319,37 @@ export default {
     methods: {
         delTag(el){
             // 删除标签
-                this.image.tags = this.image.tags.filter(item => item !== el);
+            console.log('el',el);
+            const formData=new FormData();
+            formData.append('tag',el);
+            // /paas/delete_image
+            let that=this;
+            this.$axios({
+                url: '/paas/delete_tag',
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'multipart/form-data'
+                },
+                data: formData
+             })
+           .then(function(res){
+             console.log('删除tag',res.data);
+             if(res.data.errno==1000){
+               that.image.tags = that.image.tags.filter(item => item !== el);
+               window.alert('删除成功！');
+             }
+            else
+              window.alert('删除失败！');
+
+           })
+           .catch(function(err){
+            console.log(err);
+           });
+          
+        },
+        editDockerfile(){
+          this.dialog1=false;
+          console.log('编辑dockerfile');
         },
         delImage(){
             // 删除镜像
@@ -237,6 +368,10 @@ export default {
              })
            .then(function(res){
              console.log('删除镜像',res.data);
+             if(res.data.msg=="success")
+              window.alert('删除成功！');
+            else
+              window.alert('删除失败！');
 
            })
            .catch(function(err){
@@ -246,11 +381,35 @@ export default {
         addTag(){
             // 添加标签
             console.log('添加标签')
-            if((!this.image.tags.includes(this.newlabel))&&(this.newlabel!='')){
-                 this.image.tags.push(this.newlabel);
-                 this.newlabel='';
-                //  /paas/add_tag
-            }
+            const formData=new FormData();
+            formData.append('id',this.$route.query.id);
+            formData.append('name',this.newName);
+            formData.append('version',this.newVersion);
+            // console.log('test',this.newName.toString()+":"+this.newVersion.toString());
+             var tag=this.newName.toString()+":"+this.newVersion.toString();
+             let that=this;
+            this.$axios({
+          url: '/paas/add_tag',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          data: formData
+        })
+        .then(function(res){
+          console.log('添加标签',res);
+          window.alert('添加成功');
+           that.image.tags.push(tag);
+          that.newName='';
+            that.newVersion='';
+          // var tag=this.newName.toString()+":"+this.newVersion.toString();
+          console.log('tag',tag);
+          })
+         .catch(function(err){
+          console.log(err);
+          window.alert('添加失败');
+          });
+
         }
     },
 }
