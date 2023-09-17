@@ -2,11 +2,11 @@
   <div id="app">
   <v-card
     width="256"
-    height="1080px"
+    height="120vh"
     class="mx-auto"
-    style="float: left;"
+    style="float: left; "
   >
-    <v-navigation-drawer permanent>
+    <v-navigation-drawer permanent       style="  background-color:#607D8B;">
       <v-list-item>
         <v-list-item-content>
           <v-list-item-title class="text-h6">
@@ -31,7 +31,7 @@
           </v-list-item-icon>
 
           <v-list-item-content>
-            <v-list-item-title>镜像管理</v-list-item-title>
+            <v-list-item-title class="list-title">镜像管理</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         
@@ -44,7 +44,7 @@
           </v-list-item-icon>
 
           <v-list-item-content>
-            <v-list-item-title>容器管理</v-list-item-title>
+            <v-list-item-title class="list-title">容器管理</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list>
@@ -79,11 +79,16 @@
 </script>
 <style>
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  font-weight: 800;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
+  color: #263238;
+  background-color:#ECEFF1;
+  height: 120vh;
+  margin:0;
+  padding:0;
 }
 
 nav {
@@ -93,9 +98,19 @@ nav {
 nav a {
   font-weight: bold;
   color: #2c3e50;
+  
 }
 
 nav a.router-link-exact-active {
   color: #42b983;
+}
+.nav-style{
+  background-color: #CFD8DC;
+}
+.list-title{
+  font-weight: 900;
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size:larger;
+  font-weight: 700;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <div id="imageDetail" data-app>
+    <div id="imageDetail" data-app style="overflow-y:scroll">
   <h2>镜像详情</h2>
   <template>
   <v-card 
@@ -7,7 +7,8 @@
     shaped
     class="mx-auto my-12"
     max-width="1000"
-    style="margin-left:300px;margin-top:30px"
+    display="flex"
+    style="margin:30px"
     
     >
     <v-card-title class="title-style">
@@ -20,7 +21,7 @@
         <v-subheader class="header-style">ID</v-subheader>
       </v-col>
       <v-col cols="8">
-        <v-subheader>{{image.Created_time}}</v-subheader>
+        <v-subheader>{{image.id}}</v-subheader>
       </v-col>
     </v-row>
   <v-divider></v-divider>
@@ -29,7 +30,7 @@
         <v-subheader class="header-style">操作系统</v-subheader>
       </v-col>
       <v-col cols="8">
-        <v-subheader>{{image.Os}}</v-subheader>
+        <v-subheader>{{image.os}}</v-subheader>
       </v-col>
     </v-row>
   <v-divider></v-divider>
@@ -38,7 +39,7 @@
         <v-subheader class="header-style">架构</v-subheader>
       </v-col>
       <v-col cols="8">
-        <v-subheader>{{image.Architecture}}</v-subheader>
+        <v-subheader>{{image.architecture}}</v-subheader>
       </v-col>
     </v-row>
     <v-divider></v-divider>
@@ -47,10 +48,18 @@
         <v-subheader class="header-style">大小</v-subheader>
       </v-col>
       <v-col cols="8">
-      <v-subheader>{{image.Size}}</v-subheader>
+      <v-subheader>{{image.size}}</v-subheader>
       </v-col>
     </v-row>
     <v-divider></v-divider>
+    <v-row>
+      <v-col cols="4">
+        <v-subheader class="header-style">创建时间</v-subheader>
+      </v-col>
+      <v-col cols="8">
+      <v-subheader>{{image.create_time}}</v-subheader>
+      </v-col>
+    </v-row>
   </v-container>
     </v-card-text>
     <v-card-actions>
@@ -65,7 +74,10 @@
         <v-btn 
         style="margin:20px;background-color:#D84315;color:white" 
         v-bind="attrs"
-        v-on="on">删除镜像</v-btn>
+        v-on="on">
+        删除镜像
+      <v-icon color="primary">mdi-trash-can-outline</v-icon>
+        </v-btn>
    
       </template>
       <v-card>
@@ -100,16 +112,17 @@
     shaped
     class="mx-auto my-12"
     max-width="1000"
-    style="margin-left:300px;margin-top:30px"
+    style="margin:30px"
   >
   <v-card-title class="title-style">
+    <v-icon color="white" >mdi-tag-outline</v-icon>
     镜像标签
   </v-card-title>
   <v-card-text>
      <v-chip
-      style="margin:20px"
-      v-for="(item,key) in image.Tag"
-      v-if="image.Tag.includes(item)"
+      style="margin:20px;background-color:"
+      v-for="(item,key) in image.tags"
+      v-if="image.tags.includes(item)"
       :key="key"
       class="ma-2"
       close
@@ -117,7 +130,7 @@
       text-color="white"
       @click:close="delTag(item)"
     >
-      {{image.Tag[key]}}
+      {{image.tags[key]}}
     </v-chip>
   </v-card-text>
   </v-card>
@@ -126,7 +139,8 @@
     shaped
     class="mx-auto my-12"
     max-width="1000"
-    style="margin-left:300px;margin-top:30px"
+    display="flex"
+    style="margin:30px"
     >
     <v-card-title class="title-style">标记镜像</v-card-title>
     <v-card-text>
@@ -149,7 +163,7 @@
           cols="12"
           sm="2"
         >
-          <v-btn style="margin:auto; " @click="addTag()">添加</v-btn>
+          <v-btn style="margin:auto; " color="primary" dark @click="addTag()">添加</v-btn>
         </v-col>
       </v-row>
     </v-container>
@@ -168,32 +182,74 @@ export default {
             newlabel:'',
             dialog:false,
             image:{
-                Created_time:'2022-03-04',
-                Architecture:'土豆哈哈哈',
-                Os:'Linux',
-                Size:128.83,
-                Id:'001',
-                Tag:['nginx','potato'],
+                // Created_time:'2022-03-04',
+                // Architecture:'土豆哈哈哈',
+                // Os:'Linux',
+                // Size:128.83,
+                // Id:'001',
+                // Tag:['nginx','potato'],
             },
         
         }
     },
+    mounted() {
+      let that=this;//将vue对象的引用保存在that中
+       const formData = new FormData();
+       console.log(this.$route.query.id);
+        formData.append('id',this.$route.query.id);
+        this.$axios({
+          url: '/paas/image_info',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          data: formData
+        })
+      .then(function(res){
+       console.log('镜像详情',res.data);
+       that.image=res.data;
+
+      })
+      .catch(function(err){
+       console.log(err);
+      });
+    },
+
     methods: {
         delTag(el){
             // 删除标签
-                this.image.Tag = this.image.Tag.filter(item => item !== el);
+                this.image.tags = this.image.tags.filter(item => item !== el);
         },
         delImage(){
             // 删除镜像
             this.dialog=false;
             console.log('删除镜像')
+            const formData=new FormData();
+            formData.append('id',this.$route.query.id);
+            // /paas/delete_image
+            this.$axios({
+                url: '/paas/delete_image',
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'multipart/form-data'
+                },
+                data: formData
+             })
+           .then(function(res){
+             console.log('删除镜像',res.data);
+
+           })
+           .catch(function(err){
+            console.log(err);
+           });
         },
         addTag(){
             // 添加标签
             console.log('添加标签')
-            if((!this.image.Tag.includes(this.newlabel))&&(this.newlabel!='')){
-                 this.image.Tag.push(this.newlabel);
+            if((!this.image.tags.includes(this.newlabel))&&(this.newlabel!='')){
+                 this.image.tags.push(this.newlabel);
                  this.newlabel='';
+                //  /paas/add_tag
             }
         }
     },
@@ -202,9 +258,9 @@ export default {
 
 <style>
 .title-style{
-    background-color: #212121;
-    color: white;
-    height: 60px;
+    background-color: #CFD8DC;
+    color: black;
+    height: 50px;
 }
 .header-style{
     font-weight: 600;

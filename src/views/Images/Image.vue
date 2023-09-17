@@ -1,7 +1,7 @@
 <template>
   <div id="images" data-app>
-    <div class="table-wrapper">
     <h2>镜像管理</h2>
+    <div class="table-wrapper">
     <div class="card-style">
     <v-card>
     <v-card-title>
@@ -29,18 +29,12 @@
           dark
           style="margin-left:120px;margin-right:30px"
         >
-          创建新镜像
-        </v-btn>
-        <v-btn
-          color="primary"
-          dark
-        >
-          删除镜像
+          拉取镜像
         </v-btn>
       </template>
       <v-card>
         <v-card-title>
-          <span class="text-h5">创建新镜像</span>
+          <span class="text-h5">拉取镜像</span>
         </v-card-title>
         <v-card-text>
           <v-container>
@@ -49,11 +43,13 @@
                 <v-text-field
                   label="镜像名称"
                   required
+                  v-model="image_name"
                 ></v-text-field>
               </v-col>
               <v-col cols="12">
                 <v-text-field
                   label="镜像版本"
+                  v-model="image_version"
                   required
                 ></v-text-field>
               </v-col>
@@ -94,7 +90,7 @@
           <v-btn
             color="blue darken-1"
             dark
-            @click="dialog = false"
+            @click="newImage()"
             style="margin:10px"
           >
             确定
@@ -112,29 +108,35 @@
       :search="search"
       show-select
     >
-    <!-- <template v-slot:top>
+    <template v-slot:top>
       <v-toolbar
         flat
       >
       <v-dialog v-model="dialogDelete" max-width="500px">
           <v-card>
-            <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
+            <v-card-title class="text-h5">确定删除该镜像？</v-card-title>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="closeDelete">Cancel</v-btn>
-              <v-btn color="blue darken-1" text @click="deleteItemConfirm">OK</v-btn>
+              <v-btn color="primary" text @click="closeDelete">取消</v-btn>
+              <v-btn color="primary" text @click="deleteItemConfirm">确定</v-btn>
               <v-spacer></v-spacer>
             </v-card-actions>
           </v-card>
         </v-dialog>
       </v-toolbar>
-    </template> -->
+    </template>
     <template v-slot:item.actions="{ item }">
       <v-icon
         small
         @click="detailItem(item)"
       >
         mdi-pencil
+      </v-icon>
+       <v-icon
+        small
+        @click="deleteItem(item)"
+      >
+        mdi-delete
       </v-icon>
     </template>
     </v-data-table>
@@ -145,43 +147,61 @@
 </template>
 
 <script>
+import axios from 'axios'
   export default {
     data () {
       return {
         search: '',
         name:'images',
         dialog:false,
+        dialogDelete: false,
         selected:[],
+        image_name:'',
+        image_version:'',
         headers: [
           {
             text: 'id',
             align: 'start',
             filterable: false,
-            value: 'name',
+            value: 'short_id',
           },
-          { text: '标签', value: 'label' },
+          { text: '标签', value: 'tags' },
           { text: '大小', value: 'size' },
-          { text: '创建时间', value: 'create-time' },
+          { text: '创建时间', value: 'create_time' },
           { text: '管理', value: 'actions', sortable: false },
         ],
+        editedIndex: -1,
+      editedItem: {
+        name: '',
+        calories: 0,
+        fat: 0,
+        carbs: 0,
+        protein: 0,
+      },
+      defaultItem: {
+        name: '',
+        calories: 0,
+        fat: 0,
+        carbs: 0,
+        protein: 0,
+      },
         desserts: [
-          {
-            name: '001',
-            label: "nginx",
-            size:127.07
-          },
-          {
-            name: '002',
-            label: "nginx",
-            size:23
-          },
-          {
-            name: '003',
-            label: "alpine",
-            size:72.42
-          }
+          // // 
+          // {
+          //   short_id: '001',
+          //   id:'',
+          //   label: "nginx",
+          //   size:'127.07',
+          //   create_time:'',
+          //   tags:[],
+          // },
         ],
       }
+    },
+    watch: {
+      dialogDelete (val) {
+        val || this.closeDelete()
+      },
     },
     methods: {
       addImage(){
@@ -189,26 +209,127 @@
       },
       detailItem(el){
         console.log('id',el);
-        this.$router.push({path:'/image_detail',query:{id:el.name}});
+        this.$router.push({path:'/image_detail',query:{id:el.short_id}});
       },
       cancer(){
         this.show=false;
       },
-      submitImage(){
-        this.show=false;
-        //提交表单
-      }
+      newImage(){
+        this.dialog=false;
+        // /paas/pull_image
+        const formData = new FormData();
+        console.log('image_Name',this.image_name);
+        console.log('image_version',this.image_version);
+        formData.append('name',this.image_name);
+        formData.append('version',this.image_version);
+        console.log('新镜像',formData);
+        this.$axios({
+          url: '/paas/pull_image',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          data: formData
+        })
+      .then(function(res){
+       console.log('拉去镜像',res.data);
+
+      })
+      .catch(function(err){
+       console.log(err);
+      });
+      },
+      deleteItem (item) {
+        this.editedIndex = this.desserts.indexOf(item)
+        this.editedItem = Object.assign({}, item)
+        this.dialogDelete = true
+      },
+
+      deleteItemConfirm () {
+        //删除镜像
+        console.log('del_item',this.desserts[this.editedIndex].short_id);
+          const formData=new FormData();
+            formData.append('id',this.$route.query.id);
+            // /paas/delete_image
+            this.$axios({
+                url: '/paas/delete_image',
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'multipart/form-data'
+                },
+                data: formData
+             })
+           .then(function(res){
+             console.log('删除镜像',res.data);
+           })
+           .catch(function(err){
+            console.log(err);
+           });
+        this.desserts.splice(this.editedIndex, 1)
+        this.closeDelete()
+      },
+
+      close () {
+        this.dialog = false
+        this.$nextTick(() => {
+          this.editedItem = Object.assign({}, this.defaultItem)
+          this.editedIndex = -1
+        })
+      },
+
+      closeDelete () {
+        this.dialogDelete = false
+        this.$nextTick(() => {
+          this.editedItem = Object.assign({}, this.defaultItem)
+          this.editedIndex = -1
+        })
+      },
     },
+    mounted() {
+      let that=this;//将vue对象的引用保存在that中
+      this.$axios.post('/paas/list_images')
+      .then(function(res){
+       console.log('镜像列表',res.data);
+              console.log('desserts',that.desserts);
+       that.desserts=res.data;
+       for(var i=0;i<that.desserts.length;i++){
+        that.desserts[i].create_time=that.desserts[i].create_time.slice(0,19);
+       }
+      })
+      .catch(function(err){
+       console.log(err);
+      });
+    },
+
+    //  created() {
+    //   this.$axios.post('/paas/list_images')
+    //   .then(function(res){
+    //    console.log('镜像列表',res.data);
+    //           console.log('desserts',this.desserts);
+    //    this.desserts=res.data;
+    //   })
+    //   .catch(function(err){
+    //    console.log(err);
+    //   });
+    // },
   }
 </script>
 <style>
 .table-wrapper{
-    width: 800px;
-    padding:20px;
+    /* width: 1100px; */
+    display: flex;
     padding-top:30px;
     margin: auto;
+    color:#263238;
 }
 .card-style{
     margin:20px;
+    color:#263238;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-weight: 700;
+}
+.title{
+  float: left;
+  color:#263238;
 }
 </style>
