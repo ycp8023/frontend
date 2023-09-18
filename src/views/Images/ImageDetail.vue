@@ -96,19 +96,19 @@
                   required
                 ></v-text-field>
               </v-col>
-              <v-col cols="12">
+              <!-- <v-col cols="12">
                 <v-text-field
                   label="标签"
-                  v-model="docker_tag"
                   required
                 ></v-text-field>
-              </v-col>
+              </v-col> -->
               <v-col cols="12">
-                <v-text-field
+                <v-textarea
                   label="docker"
                   v-model="docker_docker"
                   required
-                ></v-text-field>
+                  outlined
+                ></v-textarea>
               </v-col>
             </v-row>
           </v-container>
@@ -280,7 +280,7 @@ export default {
             newId:'',
             newName:'',
             newVersion:'',
-            docker_tag:'',
+            // docker_tag:'',
             docker_name:'',
             docker_docker:'',
             dialog:false,
@@ -358,7 +358,7 @@ export default {
           // /paas/modify_image
           const formData=new FormData();
           formData.append('name',this.docker_name);
-          formData.append('tag',this.docker_tag);
+          formData.append('tag',this.image.tags[0]);
           formData.append('docker',this.docker_docker);
           this.$axios({
                 url: '/paas/modify_image',
